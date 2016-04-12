@@ -63,14 +63,54 @@ namespace EqualityComparer.Json.Samples
             var comparisonResult = Comparer.HasDifferences(jOExpected, jOReceived);
             if (!comparisonResult.AreEquals)
             {
-                Console.WriteLine("There are differences between both models");
+                Console.WriteLine("There are differences between both models\n");
+
+                Func<ICollection<string>, int> biggestString = collection =>
+                {
+                    return collection.Select(item => item.Length).Max();
+                };
+
+                var numeratorSize = Math.Max(comparisonResult.LeftMemberMissingNodes.Count,
+                    comparisonResult.RightMemberMissingNodes.Count).ToString().Length + 1;
+                var valueFieldSize = Math.Max(biggestString(comparisonResult.LeftMemberMissingNodes.Keys),
+                    biggestString(comparisonResult.RightMemberMissingNodes.Keys));
+
+                var colls = new[] {"Path", "Value"};
+                var pathMarginLeft = numeratorSize + 1 + colls[0].Length;
+                var valueMarginLeft = valueFieldSize + colls[1].Length - colls[0].Length + 1;
+
+                var gridHeaderFormat = "{0," + pathMarginLeft + "}{1," + valueMarginLeft + "}";
+                var gridRowFormat = "{0,-" + (numeratorSize + 1) + "}{1,-" + (valueFieldSize + 1) + "}{2}";
+
+                var i = 1;
+                if (comparisonResult.LeftMemberMissingNodes.Count != 0)
+                {
+                    Console.WriteLine("The following nodes does not exists in first json model:");
+                    Console.WriteLine(gridHeaderFormat, "Path", "Value");
+                    foreach (var item in comparisonResult.LeftMemberMissingNodes)
+                    {
+                        Console.WriteLine(gridRowFormat, (i++) + ".", item.Key, item.Value);
+                    }
+                    Console.WriteLine();
+                }
+                if (comparisonResult.RightMemberMissingNodes.Count != 0)
+                {
+                    Console.WriteLine("The following nodes does not exists in second json model:");
+                    Console.WriteLine(gridHeaderFormat, "Path", "Value");
+                    i = 1;
+                    foreach (var item in comparisonResult.RightMemberMissingNodes)
+                    {
+                        Console.WriteLine(gridRowFormat, (i++) + ".", item.Key, item.Value);
+                    }
+                    Console.WriteLine();
+                }
             }
             else
             {
-                Console.WriteLine("The models are exactly equals");
+                Console.WriteLine("The models are exactly equals\n");
             }
 
-            Console.WriteLine("Press any key to continue...");
+            Console.Write("Press any key to continue...");
             Console.ReadKey(false);
         }
     }
